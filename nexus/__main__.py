@@ -1,15 +1,46 @@
 """
 Nexus WiFi Traffic Monitor — entry point.
 
-Usage:
+Usage (script):
     sudo python -m nexus [--iface INTERFACE]
+
+Usage (exe):
+    Run Nexus.exe as Administrator
 
 Requires root/admin privileges for packet capture.
 """
 
 import argparse
+import ctypes
 import os
 import sys
+
+
+def _is_admin() -> bool:
+    """Check for elevated privileges on any platform."""
+    if os.name == "nt":
+        try:
+            return ctypes.windll.shell32.IsUserAnAdmin() != 0
+        except Exception:
+            return False
+    else:
+        return os.geteuid() == 0
+
+
+def _request_admin_windows():
+    """Re-launch the current process with a UAC elevation prompt on Windows."""
+    if getattr(sys, "frozen", False):
+        exe = sys.executable
+    else:
+        exe = sys.executable  # python.exe
+    params = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else ""
+    try:
+        ctypes.windll.shell32.ShellExecuteW(
+            None, "runas", exe, params, None, 1
+        )
+    except Exception:
+        pass
+    sys.exit(0)
 
 
 def main():
@@ -32,12 +63,15 @@ def main():
     args = parser.parse_args()
 
     # privilege check
-    if os.name == "posix" and os.geteuid() != 0:
-        print(
-            "ERROR: Nexus requires root privileges for packet capture.\n"
-            "Run with:  sudo python -m nexus"
-        )
-        sys.exit(1)
+    if not _is_admin():
+        if os.name == "nt":
+            _request_admin_windows()
+        else:
+            print(
+                "ERROR: Nexus requires root privileges for packet capture.\n"
+                "Run with:  sudo python -m nexus"
+            )
+            sys.exit(1)
 
     # lazy imports so --help works without deps
     from nexus.core.scanner import NetworkScanner

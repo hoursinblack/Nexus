@@ -15,3 +15,5 @@ env/
 .pytest_cache/
 .DS_Store
 Thumbs.db
+*.spec.bak
+*.manifest

@@ -30,34 +30,55 @@ Built as a modern replacement for outdated school network monitoring tools.
 +------------------+----------------------------+
 ```
 
-## Requirements
+## Quick Start (Executable)
 
-- Python 3.11+
-- Root / administrator privileges (required for packet capture)
-- A WiFi interface in monitor-capable mode (or a standard interface for ARP + DNS sniffing)
+1. Download `Nexus.exe` from the [Releases](../../releases) page
+2. Right-click → **Run as administrator** (required for packet capture)
+3. Nexus auto-detects your network interface and starts scanning
 
-## Installation
+That's it. No Python install needed.
 
-```bash
-# clone the repo
+## Prerequisites (Windows)
+
+- **Npcap** — Required for packet capture on Windows. Download from https://npcap.com. During install, check **"Install Npcap in WinPcap API-compatible mode"**.
+- **Administrator privileges** — Nexus will prompt for UAC elevation automatically.
+
+## Building the .exe Yourself
+
+If you want to build from source instead of using the release:
+
+```
+# requires Python 3.11+
 git clone https://github.com/hoursinblack/Nexus.git
 cd Nexus
 
-# (recommended) create a virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
+# option 1: use the build script (Windows)
+build.bat
 
-# install dependencies
+# option 2: use the build script (Linux/macOS)
+chmod +x build.sh && ./build.sh
+
+# option 3: manual
 pip install -r requirements.txt
+pyinstaller nexus.spec --noconfirm
 ```
 
-## Usage
+The executable lands in `dist/Nexus.exe` (Windows) or `dist/Nexus` (Linux/macOS).
+
+## Running from Source (Alternative)
+
+If you prefer not to build an exe:
 
 ```bash
-# run with auto-detected interface
+pip install -r requirements.txt
+
+# Windows (run terminal as Administrator)
+python -m nexus
+
+# Linux/macOS
 sudo python -m nexus
 
-# or specify an interface
+# specify interface manually
 sudo python -m nexus --iface wlan0
 
 # adjust scan interval (default 30s)
@@ -89,22 +110,21 @@ sudo python -m nexus --scan-interval 15
 ```
 Nexus/
 ├── nexus/
-│   ├── __init__.py
 │   ├── __main__.py          # entry point
 │   ├── core/
-│   │   ├── __init__.py
 │   │   ├── scanner.py       # ARP network scanner
 │   │   └── sniffer.py       # DNS/TLS/HTTP traffic sniffer
 │   ├── gui/
-│   │   ├── __init__.py
 │   │   ├── app.py           # main window
 │   │   ├── header.py        # top bar with stats
 │   │   ├── device_panel.py  # left device list
 │   │   ├── detail_panel.py  # right detail/history view
 │   │   └── theme.py         # colors and fonts
 │   └── utils/
-│       ├── __init__.py
 │       └── device_id.py     # MAC vendor + device type identification
+├── nexus.spec               # PyInstaller build config
+├── build.bat                # one-click build (Windows)
+├── build.sh                 # one-click build (Linux/macOS)
 ├── requirements.txt
 ├── setup.py
 └── .gitignore
